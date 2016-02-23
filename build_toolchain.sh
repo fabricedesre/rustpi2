@@ -45,7 +45,7 @@ function update_repo {
   URL=$2
   if [ -d ./deps/$NAME ];
   then
-    cd ./deps/$NAME && git pull
+    cd ./deps/$NAME && git pull --recurse-submodules=yes
   else
     git clone --recursive $URL deps/$NAME
   fi
