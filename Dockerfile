@@ -2,7 +2,6 @@ FROM ubuntu:15.04
 MAINTAINER Fabrice Desré <fabrice@desre.org>
 
 ADD sources.list /etc/apt/
-RUN mkdir /mozilla
 
 RUN dpkg --add-architecture armhf
 RUN apt-get update
@@ -12,7 +11,6 @@ RUN apt-get install -y \
   curl \
   file \
   g++-arm-linux-gnueabihf \
-  c++-arm-linux-gnueabihf \
   git
 
 RUN apt-get install -y --no-install-recommends \
