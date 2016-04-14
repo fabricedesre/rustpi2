@@ -1,0 +1,3 @@
+#!/bin/bash
+#arm-linux-gnueabihf-gcc --sysroot=/opt/rustpi2/x-tools/arm-unknown-linux-gnueabihf/sysroot -L /opt/rustpi2/x-tools/arm-unknown-linux-gnueabihf/sysroot/usr/lib/arm-linux-gnueabihf -l ixml -l threadutil -l sonic -l portaudio -l jack -l asound "$@"
+arm-linux-gnueabihf-gcc "$@"

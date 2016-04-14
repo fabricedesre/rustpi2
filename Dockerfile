@@ -1,29 +1,61 @@
-# Creates a docker image to cross compile Rust programs targetting a RPi2
-
-FROM ubuntu:wily
+FROM ubuntu:15.04
 MAINTAINER Fabrice Desré <fabrice@desre.org>
 
-# Copy and extract the toolchain
-ADD toolchain.tar.gz .
+ADD sources.list /etc/apt/
+RUN mkdir /mozilla
 
-# Install dependencies
+RUN dpkg --add-architecture armhf
 RUN apt-get update
-RUN apt-get install -y libcurl3 gcc libstdc++-5-dev
+RUN apt-get upgrade -y
+RUN apt-get install -y \
+  build-essential \
+  curl \
+  file \
+  g++-arm-linux-gnueabihf \
+  c++-arm-linux-gnueabihf \
+  git
 
-RUN useradd -m -d /home/rustpi2 -p rustpi2 rustpi2
+RUN apt-get install -y --no-install-recommends \
+  libasound2:armhf \
+  libssl-dev:armhf \
+  libespeak-dev:armhf \
+  libupnp6-dev:armhf \
+  libudev-dev:armhf \
+  libavahi-client-dev:armhf \
+  libsqlite3-dev:armhf
 
-USER rustpi2
-WORKDIR /home/rustpi2
+RUN apt-get clean
 
-ENV PATH=/opt/rustpi2/bin:/opt/rustpi2/x-tools/bin:$PATH
-ENV LD_LIBRARY_PATH=/opt/rustpi2/lib:$LD_LIBRARY_PATH
-ENV TARGET_CFLAGS="-I /opt/rustpi2/x-tools/arm-unknown-linux-gnueabihf/sysroot/usr/include/arm-linux-gnueabihf"
-ENV OPENSSL_LIB_DIR=/opt/rustpi2/x-tools/arm-unknown-linux-gnueabihf/sysroot/usr/lib/arm-linux-gnueabihf
+ENV SHELL=/bin/bash
+
+RUN useradd -m -d /home/user -p user user
+
+# open-zwave wants -cc and -c++ but I could not find a package providing them.
+RUN cp /usr/bin/arm-linux-gnueabihf-gcc /usr/bin/arm-linux-gnueabihf-cc
+RUN cp /usr/bin/arm-linux-gnueabihf-g++ /usr/bin/arm-linux-gnueabihf-c++
+
+USER user
+WORKDIR /home/user
+
+RUN git clone https://github.com/rust-lang/rustup.git
+
+RUN ./rustup/rustup.sh --disable-sudo --prefix=/home/user --channel=nightly --date=2016-04-10 --with-target=armv7-unknown-linux-gnueabihf
+
+ENV PATH=/home/user/bin:$PATH
+ENV LD_LIBRARY_PATH=/home/user/lib:$LD_LIBRARY_PATH
+
+# For rust-crypto
+ENV CC=arm-linux-gnueabihf-gcc
+
+# For open-zwave
+ENV CROSS_COMPILE=arm-linux-gnueabihf-
 
 RUN mkdir -p dev/source
-
 RUN mkdir dev/.cargo
-RUN echo "[target.armv7-unknown-linux-gnueabihf]" > dev/.cargo/config
-run echo "linker = \"rustpi-linker\"" >> dev/.cargo/config
 
-WORKDIR /home/rustpi2/dev/source
+ADD cargopi /home/user/bin
+ 
+ADD rustpi-linker /home/user/bin
+
+WORKDIR /home/user/dev/source
+
