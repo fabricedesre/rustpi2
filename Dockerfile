@@ -6,12 +6,13 @@ ADD sources.list /etc/apt/
 RUN dpkg --add-architecture armhf
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install -y \
+RUN apt-get install -y --no-install-recommends \
   build-essential \
   curl \
   file \
-  g++-arm-linux-gnueabihf \
-  git
+  g++-arm-linux-gnueabihf
+
+RUN apt-get install -y git
 
 RUN apt-get install -y --no-install-recommends \
   libasound2:armhf \
